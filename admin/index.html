@@ -322,6 +322,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 const firebaseConfig = {
   apiKey: "AIzaSyDEdOK2_B6YLO19_78BucCaoKhxyNcYHfU",
@@ -368,10 +369,11 @@ onValue(ref(db, "siteData"), (snapshot) => {
   if(data){ state = normalizeState(data); refreshAll(); markSaved(); }
 });
 
+const ADMIN_EMAIL = "admin@ids-hub.local";
 const ADMIN_PASSWORD = "HeLlOiDsHuB";
-let isLoggedIn = localStorage.getItem("idsHubAdminLoggedIn") === "true";
-function checkLoginStatus(){
-  if(isLoggedIn){
+
+onAuthStateChanged(auth, (user) => {
+  if(user){
     document.getElementById("login-screen").style.display = "none";
     document.getElementById("admin-screen").classList.add("show");
     refreshAll();
@@ -379,28 +381,28 @@ function checkLoginStatus(){
     document.getElementById("admin-screen").classList.remove("show");
     document.getElementById("login-screen").style.display = "flex";
   }
-}
-checkLoginStatus();
-window.handleLogin = function(e){
+});
+
+window.handleLogin = async function(e){
   e.preventDefault();
   const password = document.getElementById("pw-input").value;
   const btn = document.getElementById("login-btn");
   const errorEl = document.getElementById("login-error");
-  if(password === ADMIN_PASSWORD){
-    isLoggedIn = true;
-    localStorage.setItem("idsHubAdminLoggedIn", "true");
+  btn.textContent = "ログイン中..."; btn.disabled = true;
+  try{
+    await signInWithEmailAndPassword(auth, ADMIN_EMAIL, password);
     errorEl.classList.remove("show");
     document.getElementById("pw-input").value = "";
-    checkLoginStatus();
-  } else {
+  } catch(err){
     errorEl.classList.add("show");
     document.getElementById("pw-input").value = "";
+  } finally {
+    btn.textContent = "ログイン"; btn.disabled = false;
   }
 };
-window.handleLogout = function(){
-  isLoggedIn = false;
-  localStorage.removeItem("idsHubAdminLoggedIn");
-  checkLoginStatus();
+
+window.handleLogout = async function(){
+  await signOut(auth);
 };
 
 window.publishToFirebase = async function(){
