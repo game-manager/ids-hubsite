@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>管理者ページ – HTWFAIP Game Hub</title>
+  <title>管理者ページ – IDS Hub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
@@ -120,7 +120,7 @@
 
 <div id="login-screen">
   <div class="login-card">
-    <div class="login-logo">HTWFAIP<small>Game Hub — 管理者</small></div>
+    <div class="login-logo">IDS<small>IDS Hub — 管理者</small></div>
     <h1>ログイン</h1>
     <p class="subtitle">管理者メールアドレスとパスワードを入力してください。</p>
     <form onsubmit="handleLogin(event)">
@@ -142,7 +142,7 @@
   <header class="admin-header">
     <div class="admin-header-inner">
       <div class="admin-brand">
-        <span>HTWFAIP Game Hub</span>
+        <span>IDS Hub</span>
         <span class="admin-badge">管理者</span>
         <span class="firebase-status connected" id="fb-status">🔥 Firebase接続中</span>
       </div>
@@ -181,6 +181,7 @@
       <button class="nav-item active" onclick="switchPanel('dashboard',this)">📊 ダッシュボード</button>
       <button class="nav-item" onclick="switchPanel('news',this)">📢 お知らせ管理</button>
       <button class="nav-item" onclick="switchPanel('games',this)">🎮 ゲーム管理</button>
+      <button class="nav-item" onclick="switchPanel('other-services',this)">🧩 その他サービス管理</button>
       <div class="nav-section-label">設定</div>
       <button class="nav-item" onclick="switchPanel('settings',this)">⚙️ アカウント設定</button>
     </aside>
@@ -188,10 +189,11 @@
     <main class="admin-main">
       <div class="panel active" id="panel-dashboard">
         <h1 class="panel-title">ダッシュボード</h1>
-        <p class="panel-desc">HTWFAIP Game Hub の管理概要</p>
+        <p class="panel-desc">IDS Hub の管理概要</p>
         <div class="stat-grid">
           <div class="stat-card"><div class="stat-label">お知らせ</div><div class="stat-value" id="stat-news">0</div></div>
-          <div class="stat-card"><div class="stat-label">ゲーム数</div><div class="stat-value" id="stat-games">0</div></div>
+          <div class="stat-card"><div class="stat-label">ゲーム類</div><div class="stat-value" id="stat-games">0</div></div>
+          <div class="stat-card"><div class="stat-label">その他サービス</div><div class="stat-value" id="stat-other-services">0</div></div>
           <div class="stat-card"><div class="stat-label">公開中</div><div class="stat-value" id="stat-live">0</div></div>
           <div class="stat-card"><div class="stat-label">準備中</div><div class="stat-value" id="stat-soon">0</div></div>
         </div>
@@ -200,8 +202,12 @@
           <div id="dash-news" class="news-admin-list"></div>
         </div>
         <div class="card">
-          <div class="card-title">ゲーム一覧</div>
+          <div class="card-title">ゲーム類一覧</div>
           <div id="dash-games"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">その他サービス一覧</div>
+          <div id="dash-other-services"></div>
         </div>
       </div>
 
@@ -218,8 +224,24 @@
 
       <div class="panel" id="panel-games">
         <h1 class="panel-title">ゲーム管理</h1>
-        <p class="panel-desc">URL・ステータスを変更後、「Firebaseに公開する」を押すと即時反映されます。</p>
-        <div id="game-list"></div>
+        <p class="panel-desc">カジノ・競馬・投資などのゲーム類を追加・編集・削除できます。変更後、「Firebaseに公開する」を押すと即時反映されます。</p>
+        <div class="card">
+          <div class="card-title">ゲーム類一覧
+            <button class="btn btn-primary btn-sm" onclick="openServiceModal('games')">＋ 追加</button>
+          </div>
+          <div id="game-list"></div>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-other-services">
+        <h1 class="panel-title">その他サービス管理</h1>
+        <p class="panel-desc">ルーレットなど、ゲーム類以外のサービスを追加・編集・削除できます。</p>
+        <div class="card">
+          <div class="card-title">その他サービス一覧
+            <button class="btn btn-primary btn-sm" onclick="openServiceModal('otherServices')">＋ 追加</button>
+          </div>
+          <div id="other-service-list"></div>
+        </div>
       </div>
 
       <div class="panel" id="panel-settings">
@@ -267,6 +289,42 @@
   </div>
 </div>
 
+
+<div class="modal-overlay" id="service-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title" id="service-modal-title">サービスを追加</h2>
+      <button class="modal-close" onclick="closeServiceModal()">✕</button>
+    </div>
+    <input type="hidden" id="service-kind" value="games" />
+    <input type="hidden" id="service-idx" value="-1" />
+    <div class="form-grid-2">
+      <div class="form-row"><label>番号</label><input type="text" id="service-number" class="form-input" placeholder="Game 01 / Service 01" /></div>
+      <div class="form-row"><label>タイトル</label><input type="text" id="service-title" class="form-input" placeholder="サービス名" /></div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>タイプ表示名</label><input type="text" id="service-type" class="form-input" placeholder="テンポ型 / 準備中サービス" /></div>
+      <div class="form-row"><label>色タイプ</label>
+        <select id="service-tone" class="form-select">
+          <option value="tone-casino">カジノ系</option>
+          <option value="tone-race">競馬系</option>
+          <option value="tone-stock">投資系</option>
+          <option value="tone-service">その他サービス系</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row"><label>説明文</label><textarea id="service-copy" class="form-textarea" placeholder="サービスの説明"></textarea></div>
+    <div class="form-row"><label>URL</label><input type="url" id="service-url" class="form-input" placeholder="https://... または #" /></div>
+    <div class="form-row"><label>ステータス</label><select id="service-status" class="form-select"><option value="live">公開中</option><option value="soon">準備中</option></select></div>
+    <div class="form-row"><label>特徴タグ（カンマ区切り）</label><input type="text" id="service-pills" class="form-input" placeholder="短時間でも遊べる, 準備中" /></div>
+    <div class="form-row"><label>ポイント（1行1項目）</label><textarea id="service-points" class="form-textarea" placeholder="ポイントを1行ずつ入力"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeServiceModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveService()">保存する</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- Firebase SDK -->
@@ -274,7 +332,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, updatePassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
-
 const firebaseConfig = {
   apiKey: "AIzaSyDEdOK2_B6YLO19_78BucCaoKhxyNcYHfU",
   authDomain: "hubsite-bbf77.firebaseapp.com",
@@ -285,27 +342,41 @@ const firebaseConfig = {
   appId: "1:434354930787:web:22ef6893913dbe55c12456",
   measurementId: "G-83PQX0PNL2"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
-
-const DEFAULT = {news:[{date:"2026-04-06",badge:"NEW",text:"カジノゲーム「ROIYAL」を正式公開しました。"},{date:"2026-04-01",badge:"オープン",text:"HTWFAIP Game Hub をオープンしました。"},{date:"2026-03-20",badge:"準備中",text:"競馬ゲームを開発中です。近日公開予定。"},{date:"2026-03-10",badge:"準備中",text:"投資ゲームを開発中です。今後のアップデートをお楽しみに。"},{date:"2026-03-01",badge:"お知らせ",text:"共通クレジット機能（ゲーム間でのポイント連携）は今後実装予定です。"}],games:[{number:"Game 01",title:"カジノ",type:"テンポ型",toneClass:"tone-casino",copy:"一瞬の判断で流れをつかむ、スピード感のある勝負。迷うより先に決める感覚が楽しいゲーム。",pills:["短時間でも遊べる","盛り上がりやすい","直感勝負"],points:["まずは気軽に遊びたい人に向いている。","勝負の早さとハラハラ感が魅力。","リスクと選択の感覚にふれられる。"],url:"https://game-manager.github.io/roiyal/",status:"live"},{number:"Game 02",title:"競馬",type:"予想型",toneClass:"tone-race",copy:"予想して、選んで、結果を見る。ただの運任せじゃなく、読みが当たる気持ちよさがある。",pills:["読み合いが楽しい","観察が大事","当たる快感"],points:["感覚だけでなく予想する面白さがある。","選ぶ理由を考えながら遊べる。","結果を見て次の判断に活かせる。"],url:"#",status:"soon"},{number:"Game 03",title:"投資",type:"思考型",toneClass:"tone-stock",copy:"先を考えて選ぶほど、あとで差が出る。じっくり型だけど、そのぶん自分の判断が残るゲーム。",pills:["考えるのが楽しい","伸び方が見える","じっくり遊べる"],points:["落ち着いて考えたい人に向いている。","選択の積み重ねが結果につながる。","増減を通して仕組みにふれられる。"],url:"#",status:"soon"}]};
-
+const DEFAULT = {
+  news:[
+    {date:"2026-04-08",badge:"NEW",text:"IDS Hub を企業ホームページ兼ハブサイトとして更新しました。"},
+    {date:"2026-04-08",badge:"オープン",text:"カジノゲーム「ROIYAL」を公開中です。"},
+    {date:"2026-03-01",badge:"お知らせ",text:"その他サービスの追加に対応しました。"}
+  ],
+  games:[
+    {number:"Game 01",title:"カジノ",type:"テンポ型",toneClass:"tone-casino",copy:"一瞬の判断で流れをつかむ、スピード感のある勝負。迷うより先に決める感覚が楽しいゲーム。",pills:["短時間でも遊べる","盛り上がりやすい","直感勝負"],points:["まずは気軽に遊びたい人に向いている。","勝負の早さとハラハラ感が魅力。","リスクと選択の感覚にふれられる。"],url:"https://game-manager.github.io/roiyal/",status:"live"},
+    {number:"Game 02",title:"競馬",type:"予想型",toneClass:"tone-race",copy:"予想して、選んで、結果を見る。ただの運任せじゃなく、読みが当たる気持ちよさがある。",pills:["読み合いが楽しい","観察が大事","当たる快感"],points:["感覚だけでなく予想する面白さがある。","選ぶ理由を考えながら遊べる。","結果を見て次の判断に活かせる。"],url:"http://teamhc-horse.duckdns.org:5000",status:"soon"},
+    {number:"Game 03",title:"投資",type:"思考型",toneClass:"tone-stock",copy:"先を考えて選ぶほど、あとで差が出る。じっくり型だけど、そのぶん自分の判断が残るゲーム。",pills:["考えるのが楽しい","伸び方が見える","じっくり遊べる"],points:["落ち着いて考えたい人に向いている。","選択の積み重ねが結果につながる。","増減を通して仕組みにふれられる。"],url:"#",status:"soon"}
+  ],
+  otherServices:[
+    {number:"Service 01",title:"ルーレット",type:"準備中サービス",toneClass:"tone-service",copy:"シンプルな操作で楽しめるルーレット型サービスを準備中です。",pills:["準備中","直感操作","今後公開予定"],points:["IDSのその他サービス枠として追加予定です。","公開準備が整い次第、リンクと詳細を更新します。","管理者ページから追加・編集・削除できます。"],url:"#",status:"soon"}
+  ]
+};
 let state = JSON.parse(JSON.stringify(DEFAULT));
 let unsaved = false;
+function normalizeState(data){
+  const merged = {...DEFAULT, ...(data || {})};
+  merged.news = Array.isArray(merged.news) ? merged.news : [];
+  merged.games = Array.isArray(merged.games) ? merged.games : [];
+  merged.otherServices = Array.isArray(merged.otherServices) ? merged.otherServices : [];
+  return merged;
+}
+function escapeHtml(value){return String(value ?? "").replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[c]));}
+function attr(value){return escapeHtml(value).replace(/`/g,"&#96;");}
 
-// Firebase Realtime Database からデータを読み込み
 onValue(ref(db, "siteData"), (snapshot) => {
   const data = snapshot.val();
-  if(data){
-    state = data;
-    refreshAll();
-    markSaved();
-  }
+  if(data){ state = normalizeState(data); refreshAll(); markSaved(); }
 });
 
-// ===== Auth =====
 onAuthStateChanged(auth, (user) => {
   if(user){
     document.getElementById("login-screen").style.display = "none";
@@ -318,136 +389,71 @@ onAuthStateChanged(auth, (user) => {
     document.getElementById("login-screen").style.display = "flex";
   }
 });
-
 window.handleLogin = async function(e){
   e.preventDefault();
   const email = document.getElementById("email-input").value.trim();
   const password = document.getElementById("pw-input").value;
   const btn = document.getElementById("login-btn");
-  btn.textContent = "ログイン中...";
-  btn.disabled = true;
-  try{
-    await signInWithEmailAndPassword(auth, email, password);
-    document.getElementById("login-error").classList.remove("show");
-  } catch(err){
-    document.getElementById("login-error").classList.add("show");
-    document.getElementById("pw-input").value = "";
-  } finally {
-    btn.textContent = "ログイン";
-    btn.disabled = false;
-  }
+  btn.textContent = "ログイン中..."; btn.disabled = true;
+  try{ await signInWithEmailAndPassword(auth, email, password); document.getElementById("login-error").classList.remove("show"); }
+  catch(err){ document.getElementById("login-error").classList.add("show"); document.getElementById("pw-input").value = ""; }
+  finally { btn.textContent = "ログイン"; btn.disabled = false; }
 };
-
-window.handleLogout = async function(){
-  await signOut(auth);
-};
-
+window.handleLogout = async function(){ await signOut(auth); };
 window.changePassword = async function(){
   const np = document.getElementById("new-pass").value;
   const cp = document.getElementById("confirm-pass").value;
   if(!np){ showToast("パスワードを入力してください","danger"); return; }
   if(np !== cp){ showToast("パスワードが一致しません","danger"); return; }
   if(np.length < 6){ showToast("6文字以上にしてください","danger"); return; }
-  try{
-    await updatePassword(auth.currentUser, np);
-    document.getElementById("new-pass").value = "";
-    document.getElementById("confirm-pass").value = "";
-    showToast("パスワードを変更しました ✓");
-  } catch(err){
-    showToast("変更に失敗しました: " + err.message, "danger");
-  }
+  try{ await updatePassword(auth.currentUser, np); document.getElementById("new-pass").value = ""; document.getElementById("confirm-pass").value = ""; showToast("パスワードを変更しました ✓"); }
+  catch(err){ showToast("変更に失敗しました: " + err.message, "danger"); }
 };
-
-// ===== Firebase Publish =====
 window.publishToFirebase = async function(){
   const btn = document.getElementById("publish-btn");
   btn.disabled = true;
   btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="animation:spin 1s linear infinite"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> 公開中...`;
-  try{
-    await set(ref(db, "siteData"), state);
-    showToast("✓ Firebaseに公開しました！即時反映されます", "success");
-    document.getElementById("publish-bar").className = "publish-bar";
-    document.getElementById("publish-msg-text").textContent = "公開済み ✓ — Firebaseにリアルタイム反映中";
-    unsaved = false;
-  } catch(err){
-    showToast("公開に失敗しました: " + err.message, "danger");
-  } finally {
-    btn.disabled = false;
-    resetPublishBtn();
-  }
+  try{ await set(ref(db, "siteData"), normalizeState(state)); showToast("✓ Firebaseに公開しました！即時反映されます", "success"); document.getElementById("publish-bar").className = "publish-bar"; document.getElementById("publish-msg-text").textContent = "公開済み ✓ — Firebaseにリアルタイム反映中"; unsaved = false; }
+  catch(err){ showToast("公開に失敗しました: " + err.message, "danger"); }
+  finally { btn.disabled = false; resetPublishBtn(); }
 };
-
-function resetPublishBtn(){
-  document.getElementById("publish-btn").innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg> Firebaseに公開する';
+function resetPublishBtn(){ document.getElementById("publish-btn").innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg> Firebaseに公開する'; }
+function markUnsaved(){ unsaved = true; document.getElementById("publish-bar").className = "publish-bar warn"; document.getElementById("publish-msg-text").textContent = "未公開の変更があります。「Firebaseに公開する」を押してください。"; document.getElementById("publish-btn").disabled = false; }
+function markSaved(){ unsaved = false; document.getElementById("publish-bar").className = "publish-bar"; document.getElementById("publish-msg-text").textContent = "変更を保存したら「Firebaseに公開」を押してください"; }
+window.switchPanel = function(name, btn){ document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active")); document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active")); document.getElementById("panel-"+name).classList.add("active"); if(btn) btn.classList.add("active"); };
+function showToast(msg, type="success"){ const t = document.getElementById("toast"); t.textContent = msg; t.className = "toast " + type; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"), 4000); }
+function badgeClass(b){ return {"NEW":"badge-new","オープン":"badge-update","準備中":"badge-soon","更新":"badge-update","お知らせ":"badge-info"}[b]||"badge-info"; }
+function fmtDate(d){ return String(d || "").replace(/-/g,"."); }
+function statusText(status){ return status === "live" ? "公開中" : "準備中"; }
+function statusColor(status){ return status === "live" ? "var(--success)" : "var(--muted)"; }
+function serviceRows(items){
+  if(!items.length) return '<p style="color:var(--muted);text-align:center;padding:20px;">項目がありません</p>';
+  return `<table style="width:100%;border-collapse:collapse;font-size:var(--text-sm);"><thead><tr style="border-bottom:1px solid var(--line);color:var(--muted);text-align:left;"><th style="padding:8px 12px;font-size:var(--text-xs);text-transform:uppercase;">No.</th><th style="padding:8px 12px;font-size:var(--text-xs);text-transform:uppercase;">タイトル</th><th style="padding:8px 12px;font-size:var(--text-xs);text-transform:uppercase;">ステータス</th><th style="padding:8px 12px;font-size:var(--text-xs);text-transform:uppercase;">URL</th></tr></thead><tbody>${items.map(g=>`<tr style="border-bottom:1px solid var(--line);"><td style="padding:10px 12px;color:var(--muted);">${escapeHtml(g.number || "")}</td><td style="padding:10px 12px;font-weight:700;">${escapeHtml(g.title || "")}</td><td style="padding:10px 12px;"><span style="font-size:var(--text-xs);font-weight:800;color:${statusColor(g.status)};">●&nbsp;${statusText(g.status)}</span></td><td style="padding:10px 12px;font-size:var(--text-xs);color:var(--muted);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(g.url || "")}</td></tr>`).join("")}</tbody></table>`;
 }
-
-function markUnsaved(){
-  unsaved = true;
-  document.getElementById("publish-bar").className = "publish-bar warn";
-  document.getElementById("publish-msg-text").textContent = "未公開の変更があります。「Firebaseに公開する」を押してください。";
-  document.getElementById("publish-btn").disabled = false;
-}
-function markSaved(){
-  unsaved = false;
-  document.getElementById("publish-bar").className = "publish-bar";
-  document.getElementById("publish-msg-text").textContent = "変更を保存したら「Firebaseに公開」を押してください";
-}
-
-// ===== UI helpers =====
-window.switchPanel = function(name, btn){
-  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
-  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
-  document.getElementById("panel-"+name).classList.add("active");
-  if(btn) btn.classList.add("active");
-};
-
-function showToast(msg, type="success"){
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.className = "toast " + type;
-  t.classList.add("show");
-  setTimeout(()=>t.classList.remove("show"), 4000);
-}
-
-function badgeClass(b){
-  return {"NEW":"badge-new","オープン":"badge-update","準備中":"badge-soon","更新":"badge-update","お知らせ":"badge-info"}[b]||"badge-info";
-}
-function fmtDate(d){ return d.replace(/-/g,"."); }
-
 function refreshDashboard(){
+  state = normalizeState(state);
   document.getElementById("stat-news").textContent = state.news.length;
   document.getElementById("stat-games").textContent = state.games.length;
-  document.getElementById("stat-live").textContent = state.games.filter(g=>g.status==="live").length;
-  document.getElementById("stat-soon").textContent = state.games.filter(g=>g.status==="soon").length;
-  document.getElementById("dash-news").innerHTML = state.news.slice(0,3).map(n=>`<div class="news-admin-item"><span class="news-admin-date">${fmtDate(n.date)}</span><span class="news-badge ${badgeClass(n.badge)}">${n.badge}</span><span class="news-admin-text">${n.text}</span></div>`).join("");
-  document.getElementById("dash-games").innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:var(--text-sm);"><thead><tr style="border-bottom:1px solid var(--line);color:var(--muted);text-align:left;"><th style="padding:8px 12px;font-size:var(--text-xs);text-transform:uppercase;">No.</th><th style="padding:8px 12px;font-size:var(--text-xs);text-transform:uppercase;">タイトル</th><th style="padding:8px 12px;font-size:var(--text-xs);text-transform:uppercase;">ステータス</th><th style="padding:8px 12px;font-size:var(--text-xs);text-transform:uppercase;">URL</th></tr></thead><tbody>${state.games.map(g=>`<tr style="border-bottom:1px solid var(--line);"><td style="padding:10px 12px;color:var(--muted);">${g.number}</td><td style="padding:10px 12px;font-weight:700;">${g.title}</td><td style="padding:10px 12px;"><span style="font-size:var(--text-xs);font-weight:800;color:${g.status==="live"?"var(--success)":"var(--muted)"};">●&nbsp;${g.status==="live"?"公開中":"準備中"}</span></td><td style="padding:10px 12px;font-size:var(--text-xs);color:var(--muted);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${g.url}</td></tr>`).join("")}</tbody></table>`;
+  document.getElementById("stat-other-services").textContent = state.otherServices.length;
+  const all = [...state.games, ...state.otherServices];
+  document.getElementById("stat-live").textContent = all.filter(g=>g.status==="live").length;
+  document.getElementById("stat-soon").textContent = all.filter(g=>g.status==="soon").length;
+  document.getElementById("dash-news").innerHTML = state.news.slice(0,3).map(n=>`<div class="news-admin-item"><span class="news-admin-date">${fmtDate(n.date)}</span><span class="news-badge ${badgeClass(n.badge)}">${escapeHtml(n.badge)}</span><span class="news-admin-text">${escapeHtml(n.text)}</span></div>`).join("");
+  document.getElementById("dash-games").innerHTML = serviceRows(state.games);
+  document.getElementById("dash-other-services").innerHTML = serviceRows(state.otherServices);
 }
-
 function refreshNewsList(){
   const el = document.getElementById("news-list");
   if(!state.news.length){ el.innerHTML='<p style="color:var(--muted);text-align:center;padding:20px;">お知らせがありません</p>'; return; }
-  el.innerHTML = state.news.map((n,i)=>`<div class="news-admin-item"><span class="news-admin-date">${fmtDate(n.date)}</span><span class="news-badge ${badgeClass(n.badge)}">${n.badge}</span><span class="news-admin-text">${n.text}</span><div class="news-admin-actions"><button class="btn btn-ghost btn-sm" onclick="openNewsModal(${i})">編集</button><button class="btn btn-danger btn-sm" onclick="deleteNews(${i})">削除</button></div></div>`).join("");
+  el.innerHTML = state.news.map((n,i)=>`<div class="news-admin-item"><span class="news-admin-date">${fmtDate(n.date)}</span><span class="news-badge ${badgeClass(n.badge)}">${escapeHtml(n.badge)}</span><span class="news-admin-text">${escapeHtml(n.text)}</span><div class="news-admin-actions"><button class="btn btn-ghost btn-sm" onclick="openNewsModal(${i})">編集</button><button class="btn btn-danger btn-sm" onclick="deleteNews(${i})">削除</button></div></div>`).join("");
 }
-
 window.openNewsModal = function(i=-1){
   document.getElementById("news-idx").value = i;
-  if(i===-1){
-    document.getElementById("modal-title").textContent = "お知らせを追加";
-    document.getElementById("news-date").value = new Date().toISOString().split("T")[0];
-    document.getElementById("news-badge").value = "NEW";
-    document.getElementById("news-text").value = "";
-  } else {
-    const n = state.news[i];
-    document.getElementById("modal-title").textContent = "お知らせを編集";
-    document.getElementById("news-date").value = n.date;
-    document.getElementById("news-badge").value = n.badge;
-    document.getElementById("news-text").value = n.text;
-  }
+  if(i===-1){ document.getElementById("modal-title").textContent = "お知らせを追加"; document.getElementById("news-date").value = new Date().toISOString().split("T")[0]; document.getElementById("news-badge").value = "NEW"; document.getElementById("news-text").value = ""; }
+  else { const n = state.news[i]; document.getElementById("modal-title").textContent = "お知らせを編集"; document.getElementById("news-date").value = n.date; document.getElementById("news-badge").value = n.badge; document.getElementById("news-text").value = n.text; }
   document.getElementById("news-modal").classList.add("show");
 };
-
 window.closeNewsModal = function(){ document.getElementById("news-modal").classList.remove("show"); };
-
 window.saveNews = function(){
   const i = parseInt(document.getElementById("news-idx").value);
   const date = document.getElementById("news-date").value;
@@ -457,46 +463,65 @@ window.saveNews = function(){
   const item = {date,badge,text};
   if(i===-1){ state.news.unshift(item); showToast("お知らせを追加しました"); }
   else { state.news[i]=item; showToast("お知らせを更新しました"); }
-  markUnsaved();
-  refreshNewsList();
-  refreshDashboard();
-  closeNewsModal();
+  markUnsaved(); refreshNewsList(); refreshDashboard(); closeNewsModal();
 };
-
-window.deleteNews = function(i){
-  if(!confirm("このお知らせを削除しますか？")) return;
-  state.news.splice(i,1);
-  markUnsaved();
-  refreshNewsList();
-  refreshDashboard();
-  showToast("削除しました","danger");
-};
-
-function refreshGameList(){
-  document.getElementById("game-list").innerHTML = state.games.map((g,i)=>`<div class="game-admin-card"><div class="game-admin-header"><div class="game-admin-meta"><span class="game-admin-num">${g.number}</span><span class="game-admin-name">${g.title}</span><span style="font-size:var(--text-xs);font-weight:800;color:${g.status==="live"?"var(--success)":"var(--muted)"};">●&nbsp;${g.status==="live"?"公開中":"準備中"}</span></div><button class="btn btn-ghost btn-sm" onclick="toggleGame(${i})">編集 ▾</button></div><div class="game-admin-body" id="gb-${i}"><div class="form-grid-2"><div class="form-row"><label>タイトル</label><input type="text" class="form-input" id="g${i}-title" value="${g.title}"/></div><div class="form-row"><label>タイプ表示名</label><input type="text" class="form-input" id="g${i}-type" value="${g.type}"/></div></div><div class="form-row"><label>説明文</label><textarea class="form-textarea" id="g${i}-copy">${g.copy}</textarea></div><div class="form-row"><label>ゲームURL</label><input type="url" class="form-input" id="g${i}-url" value="${g.url}" placeholder="https://..."/></div><div class="form-row"><label>ステータス</label><select class="form-select" id="g${i}-status"><option value="live"${g.status==="live"?" selected":""}>公開中</option><option value="soon"${g.status==="soon"?" selected":""}>準備中</option></select></div><div class="form-row"><label>特徴タグ（カンマ区切り）</label><input type="text" class="form-input" id="g${i}-pills" value="${g.pills.join(", ")}"/></div><div class="form-row"><label>ポイント（1行1項目）</label><textarea class="form-textarea" id="g${i}-points">${g.points.join("\n")}</textarea></div><div style="display:flex;gap:10px;margin-top:4px;"><button class="btn btn-primary" onclick="saveGame(${i})">保存する</button><button class="btn btn-ghost" onclick="toggleGame(${i})">閉じる</button></div></div></div>`).join("");
+window.deleteNews = function(i){ if(!confirm("このお知らせを削除しますか？")) return; state.news.splice(i,1); markUnsaved(); refreshNewsList(); refreshDashboard(); showToast("削除しました","danger"); };
+function refreshServiceList(kind, elementId){
+  const items = state[kind] || [];
+  const el = document.getElementById(elementId);
+  if(!items.length){ el.innerHTML='<p style="color:var(--muted);text-align:center;padding:20px;">項目がありません</p>'; return; }
+  el.innerHTML = items.map((g,i)=>`<div class="game-admin-card"><div class="game-admin-header"><div class="game-admin-meta"><span class="game-admin-num">${escapeHtml(g.number || "")}</span><span class="game-admin-name">${escapeHtml(g.title || "")}</span><span style="font-size:var(--text-xs);font-weight:800;color:${statusColor(g.status)};">●&nbsp;${statusText(g.status)}</span></div><div style="display:flex;gap:8px;"><button class="btn btn-ghost btn-sm" onclick="openServiceModal('${kind}',${i})">編集</button><button class="btn btn-danger btn-sm" onclick="deleteService('${kind}',${i})">削除</button></div></div><p style="color:var(--muted);font-size:var(--text-sm);margin-top:10px;">${escapeHtml(g.copy || "")}</p></div>`).join("");
 }
-
-window.toggleGame = function(i){ document.getElementById("gb-"+i).classList.toggle("open"); };
-
-window.saveGame = function(i){
-  const title=document.getElementById(`g${i}-title`).value.trim();
-  const type=document.getElementById(`g${i}-type`).value.trim();
-  const copy=document.getElementById(`g${i}-copy`).value.trim();
-  const url=document.getElementById(`g${i}-url`).value.trim();
-  const status=document.getElementById(`g${i}-status`).value;
-  const pills=document.getElementById(`g${i}-pills`).value.split(",").map(s=>s.trim()).filter(Boolean);
-  const points=document.getElementById(`g${i}-points`).value.split("\n").map(s=>s.trim()).filter(Boolean);
-  if(!title||!url){ showToast("タイトルとURLは必須です","danger"); return; }
-  state.games[i]={...state.games[i],title,type,copy,url,status,pills,points};
-  markUnsaved();
-  refreshGameList();
-  refreshDashboard();
-  showToast(`${title} を保存しました`);
+function refreshGameList(){ refreshServiceList("games", "game-list"); }
+function refreshOtherServiceList(){ refreshServiceList("otherServices", "other-service-list"); }
+window.openServiceModal = function(kind="games", i=-1){
+  state = normalizeState(state);
+  const items = state[kind] || [];
+  const isGame = kind === "games";
+  const defaultNumber = isGame ? `Game ${String(items.length + 1).padStart(2,"0")}` : `Service ${String(items.length + 1).padStart(2,"0")}`;
+  const g = i === -1 ? {number:defaultNumber,title:"",type:isGame?"サービス型":"準備中サービス",toneClass:isGame?"tone-casino":"tone-service",copy:"",pills:[],points:[],url:"#",status:"soon"} : items[i];
+  document.getElementById("service-kind").value = kind;
+  document.getElementById("service-idx").value = i;
+  document.getElementById("service-modal-title").textContent = `${isGame ? "ゲーム類" : "その他サービス"}を${i===-1 ? "追加" : "編集"}`;
+  document.getElementById("service-number").value = g.number || defaultNumber;
+  document.getElementById("service-title").value = g.title || "";
+  document.getElementById("service-type").value = g.type || "";
+  document.getElementById("service-tone").value = g.toneClass || (isGame ? "tone-casino" : "tone-service");
+  document.getElementById("service-copy").value = g.copy || "";
+  document.getElementById("service-url").value = g.url || "#";
+  document.getElementById("service-status").value = g.status || "soon";
+  document.getElementById("service-pills").value = (g.pills || []).join(", ");
+  document.getElementById("service-points").value = (g.points || []).join("\n");
+  document.getElementById("service-modal").classList.add("show");
 };
-
-function refreshAll(){ refreshDashboard(); refreshNewsList(); refreshGameList(); }
-
-// テーマ切替
+window.closeServiceModal = function(){ document.getElementById("service-modal").classList.remove("show"); };
+window.saveService = function(){
+  const kind = document.getElementById("service-kind").value;
+  const i = parseInt(document.getElementById("service-idx").value);
+  const item = {
+    number: document.getElementById("service-number").value.trim(),
+    title: document.getElementById("service-title").value.trim(),
+    type: document.getElementById("service-type").value.trim(),
+    toneClass: document.getElementById("service-tone").value,
+    copy: document.getElementById("service-copy").value.trim(),
+    url: document.getElementById("service-url").value.trim() || "#",
+    status: document.getElementById("service-status").value,
+    pills: document.getElementById("service-pills").value.split(",").map(s=>s.trim()).filter(Boolean),
+    points: document.getElementById("service-points").value.split("\n").map(s=>s.trim()).filter(Boolean)
+  };
+  if(!item.number || !item.title){ showToast("番号とタイトルは必須です","danger"); return; }
+  if(!state[kind]) state[kind] = [];
+  if(i===-1){ state[kind].push(item); showToast(`${item.title} を追加しました`); }
+  else { state[kind][i] = item; showToast(`${item.title} を保存しました`); }
+  markUnsaved(); refreshAll(); closeServiceModal();
+};
+window.deleteService = function(kind, i){
+  const item = state[kind][i];
+  if(!confirm(`「${item.title}」を削除しますか？`)) return;
+  state[kind].splice(i,1);
+  markUnsaved(); refreshAll(); showToast("削除しました","danger");
+};
+function refreshAll(){ state = normalizeState(state); refreshDashboard(); refreshNewsList(); refreshGameList(); refreshOtherServiceList(); }
 (function(){
   const root=document.documentElement;
   const toggle=document.querySelector("[data-theme-toggle]");
@@ -505,9 +530,8 @@ function refreshAll(){ refreshDashboard(); refreshNewsList(); refreshGameList();
   function icon(m){return m==="dark"?'<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/><path d="M12 1V3M12 21V23M4.22 4.22L5.64 5.64M18.36 18.36L19.78 19.78M1 12H3M21 12H23M4.22 19.78L5.64 18.36M18.36 5.64L19.78 4.22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>':'<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 12.79A9 9 0 1 1 11.21 3A7 7 0 0 0 21 12.79Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';}
   if(toggle){toggle.innerHTML=icon(theme);toggle.addEventListener("click",function(){theme=theme==="dark"?"light":"dark";root.setAttribute("data-theme",theme);toggle.innerHTML=icon(theme);});}
 })();
-
 document.getElementById("news-modal").addEventListener("click", function(e){ if(e.target===this) closeNewsModal(); });
-
+document.getElementById("service-modal").addEventListener("click", function(e){ if(e.target===this) closeServiceModal(); });
 const style = document.createElement("style");
 style.textContent = "@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}";
 document.head.appendChild(style);
